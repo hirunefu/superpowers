@@ -35,7 +35,7 @@ Cannot proceed with merge/PR until tests pass.
 
 Stop. Don't proceed to Step 2.
 
-**If tests pass:** Continue to Step 2.
+**If tests pass:** Report the result so the human can see the gate ran (e.g. "Tests: 142 passed, 0 failures"), then continue to Step 2. Never present the options menu without showing the verification result first.
 
 ### Step 2: Detect Environment
 
@@ -168,7 +168,9 @@ cd "$MAIN_ROOT"
 
 Then: Cleanup worktree (Step 6), then abandon the work:
 ```bash
-jj abandon <feature-change>             # drop the commits
+# <feature-change-id> is a jj change/revset; <feature-bookmark> is a bookmark name.
+# They are different argument types — don't pass a bookmark where a change-id is expected.
+jj abandon <feature-change-id>          # drop the commits
 jj bookmark delete <feature-bookmark>   # only if one exists
 ```
 
@@ -212,7 +214,7 @@ git worktree prune  # Self-healing: clean up any stale registrations
 
 **Open-ended questions**
 - **Problem:** "What should I do next?" is ambiguous
-- **Fix:** Present exactly 4 structured options (or 3 for detached HEAD)
+- **Fix:** Present exactly 4 structured options
 
 **Cleaning up worktree for Option 2**
 - **Problem:** Remove worktree user needs for PR iteration
@@ -249,7 +251,7 @@ git worktree prune  # Self-healing: clean up any stale registrations
 **Always:**
 - Verify tests before offering options
 - Detect environment before presenting menu
-- Present exactly 4 options (or 3 for detached HEAD)
+- Present exactly 4 options
 - Get typed confirmation for Option 4
 - Clean up worktree for Options 1 & 4 only
 - `cd` to main repo root before worktree removal

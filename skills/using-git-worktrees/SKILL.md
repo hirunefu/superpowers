@@ -89,10 +89,15 @@ Follow this priority order. Explicit user preference always beats observed files
 **MUST verify directory is ignored before creating worktree:**
 
 ```bash
-git check-ignore -q .worktrees 2>/dev/null || git check-ignore -q worktrees 2>/dev/null
+# Check the actual path you are about to create, NOT the bare directory name.
+# `git check-ignore -q .worktrees` returns a false negative when the directory
+# does not exist yet: a trailing-slash rule like `.worktrees/` in .gitignore
+# matches paths under it, but the bare token won't match a not-yet-created dir.
+WORKTREE_PARENT=.worktrees   # or `worktrees`, per the directory selection above
+git check-ignore -q "$WORKTREE_PARENT/$BRANCH_NAME"
 ```
 
-**If NOT ignored:** Add to .gitignore, commit the change, then proceed.
+**If NOT ignored:** Add the worktree parent directory to .gitignore, commit the change, then proceed. Use **git** for this commit (`git add .gitignore && git commit`) — jj is not colocated until Step 2, and this commit lands on the original checkout before the worktree exists.
 
 **Why critical:** Prevents accidentally committing worktree contents to repository.
 

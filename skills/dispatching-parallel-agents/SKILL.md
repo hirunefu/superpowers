@@ -33,16 +33,17 @@ digraph when_to_use {
 }
 ```
 
+The examples below lean on debugging (multiple failing tests), but the principle is domain-agnostic — it applies to any independent work: research questions, content generation, multi-file analysis, doc sweeps. Read "failure/test file" as "problem domain."
+
 **Use when:**
-- 3+ test files failing with different root causes
-- Multiple subsystems broken independently
+- 2+ independent problem domains (failing test files, subsystems, research questions, files to analyze) with different root contexts
 - Each problem can be understood without context from others
-- No shared state between investigations
+- No shared state between the units of work
 
 **Don't use when:**
-- Failures are related (fix one might fix others)
+- The units are related (resolving one might resolve others)
 - Need to understand full system state
-- Agents would interfere with each other
+- Agents would interfere with each other (editing the same files/resources)
 
 ## The Pattern
 
@@ -157,6 +158,18 @@ Agent 3 → Fix tool-approval-race-conditions.test.ts
 
 **Time saved:** 3 problems solved in parallel vs sequentially
 
+## Non-Debugging Example
+
+**Scenario:** A report needs three independent research inputs: (a) compare 3 managed Postgres providers on pricing, (b) summarize WCAG 2.2 changes vs 2.1, (c) list current LTS versions of Node/Python/Go. No dependencies between them.
+
+**Decision:** Independent domains, no shared state → one agent per question, dispatched in parallel.
+
+**Dispatch:** Each prompt is focused (one question), self-contained (name the providers/configs/sources inline), constrained (official sources only, cite access dates, no estimates), and specifies the output shape (a table + a short summary + sources).
+
+**Integrate:** Read each summary, check the results don't contradict each other (e.g. citation dates consistent), spot-check that constraints were honored, then synthesize into the report. Re-dispatch a single agent if one overstepped scope.
+
+Same four-step pattern as the debugging case — only the domain changed.
+
 ## Key Benefits
 
 1. **Parallelization** - Multiple investigations happen simultaneously
@@ -167,9 +180,9 @@ Agent 3 → Fix tool-approval-race-conditions.test.ts
 ## Verification
 
 After agents return:
-1. **Review each summary** - Understand what changed
-2. **Check for conflicts** - Did agents edit same code?
-3. **Run full suite** - Verify all fixes work together
+1. **Review each summary** - Understand what each produced
+2. **Check for conflicts** - Did agents touch the same files, or return contradictory results?
+3. **Verify outputs are mutually consistent** - For code, run the full test suite. For non-code work (research, analysis), cross-check the results against each other and against requirements.
 4. **Spot check** - Agents can make systematic errors
 
 ## Real-World Impact

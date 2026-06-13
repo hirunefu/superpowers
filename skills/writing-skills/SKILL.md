@@ -275,7 +275,7 @@ wc -w skills/path/SKILL.md
 - `creating-skills`, `testing-skills`, `debugging-with-logs`
 - Active, describes the action you're taking
 
-### 4. Cross-Referencing Other Skills
+### 5. Cross-Referencing Other Skills
 
 **When writing documentation that references other skills:**
 
@@ -542,6 +542,14 @@ Run pressure scenario with subagent WITHOUT the skill. Document exact behavior:
 - Which pressures triggered violations?
 
 This is "watch the test fail" - you must see what agents naturally do before writing the skill.
+
+**Minimum baseline procedure (inline, so you don't have to descend into the reference for a simple run):**
+1. Write one realistic scenario that tempts the target violation (for discipline skills, stack 3+ pressures: time + sunk cost + authority).
+2. Dispatch a fresh subagent with the scenario and NO skill. Tell it "this is a real task, decide and act."
+3. Record its choice and verbatim rationalizations.
+(For pressure-type taxonomy, multi-round plugging, and meta-testing, see @testing-skills-with-subagents.md — only needed for thorough hardening, not a first baseline.)
+
+**If the baseline does NOT fail** (the agent already complies without the skill, across multiple scenarios): STOP — do not write the skill. There is no failing test, so the Iron Law's precondition is unmet. Either the behavior is already the default, or the rule is a mechanical constraint that belongs in automation (see "Don't create for: Mechanical constraints"). Record the passing baseline as the artifact and report the finding instead of shipping a skill nothing needed.
 
 ### GREEN: Write Minimal Skill
 

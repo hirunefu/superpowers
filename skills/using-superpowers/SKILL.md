@@ -45,6 +45,8 @@ Skills use Claude Code tool names. Non-CC platforms: see `references/copilot-too
 
 **Invoke relevant or requested skills BEFORE any response or action.** Even a 1% chance a skill might apply means that you should invoke the skill to check. If an invoked skill turns out to be wrong for the situation, you don't need to use it.
 
+**Evaluate vs. invoke:** You must *evaluate* every available skill's description against the task before acting — that evaluation is mandatory and always happens first. An actual `Skill` tool *invocation* is required whenever that evaluation yields even a 1% chance of applicability. Only when you've evaluated and no skill reaches that bar may you proceed directly (the "definitely not" branch). "I evaluated and none applied" is a valid outcome; "I didn't bother checking" is not.
+
 ```dot
 digraph skill_flow {
     "User message received" [shape=doublecircle];
