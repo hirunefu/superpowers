@@ -20,14 +20,14 @@ Task tool (general-purpose):
 
     {PLAN_OR_REQUIREMENTS}
 
-    ## Git Range to Review
+    ## Range to Review
 
     **Base:** {BASE_SHA}
     **Head:** {HEAD_SHA}
 
     ```bash
-    git diff --stat {BASE_SHA}..{HEAD_SHA}
-    git diff {BASE_SHA}..{HEAD_SHA}
+    jj diff --stat --from {BASE_SHA} --to {HEAD_SHA}
+    jj diff --from {BASE_SHA} --to {HEAD_SHA}
     ```
 
     ## What to Check

@@ -41,7 +41,10 @@ BRANCH=$(git branch --show-current)
 ```
 
 - `GIT_DIR != GIT_COMMON` → already in a linked worktree (skip creation)
-- `BRANCH` empty → detached HEAD (cannot branch/push/PR from sandbox)
+- `BRANCH` empty → externally-managed checkout (cannot push/PR from sandbox)
+
+The worktree stays git-owned; once detected, `using-git-worktrees` Step 2 colocates jj so
+commits, branches, and merges run through jj.
 
 See `using-git-worktrees` Step 0 and `finishing-a-development-branch`
 Step 1 for how each skill uses these signals.

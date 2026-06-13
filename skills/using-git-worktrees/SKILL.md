@@ -11,6 +11,8 @@ Ensure work happens in an isolated workspace. Prefer your platform's native work
 
 **Core principle:** Detect existing isolation first. Then use native tools. Then fall back to git. Never fight the harness.
 
+**Version control:** This fork drives commits, branches, and merges with `jj` (Jujutsu). The worktree itself stays git-owned (harness or `git worktree`); Step 2 colocates jj on top of it so every later VCS operation uses jj while git interop keeps working.
+
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
 ## Step 0: Detect Existing Isolation
@@ -30,7 +32,7 @@ BRANCH=$(git branch --show-current)
 git rev-parse --show-superproject-working-tree 2>/dev/null
 ```
 
-**If `GIT_DIR != GIT_COMMON` (and not a submodule):** You are already in a linked worktree. Skip to Step 3 (Project Setup). Do NOT create another worktree.
+**If `GIT_DIR != GIT_COMMON` (and not a submodule):** You are already in a linked worktree. Skip to Step 2 (Initialize jj). Do NOT create another worktree.
 
 Report with branch state:
 - On a branch: "Already in isolated workspace at `<path>` on branch `<name>`."
@@ -42,7 +44,7 @@ Has the user already indicated their worktree preference in your instructions? I
 
 > "Would you like me to set up an isolated worktree? It protects your current branch from changes."
 
-Honor any existing declared preference without asking. If the user declines consent, work in place and skip to Step 3.
+Honor any existing declared preference without asking. If the user declines consent, work in place and skip to Step 2.
 
 ## Step 1: Create Isolated Workspace
 
@@ -50,7 +52,7 @@ Honor any existing declared preference without asking. If the user declines cons
 
 ### 1a. Native Worktree Tools (preferred)
 
-The user has asked for an isolated workspace (Step 0 consent). Do you already have a way to create a worktree? It might be a tool with a name like `EnterWorktree`, `WorktreeCreate`, a `/worktree` command, or a `--worktree` flag. If you do, use it and skip to Step 3.
+The user has asked for an isolated workspace (Step 0 consent). Do you already have a way to create a worktree? It might be a tool with a name like `EnterWorktree`, `WorktreeCreate`, a `/worktree` command, or a `--worktree` flag. If you do, use it and skip to Step 2.
 
 Native tools handle directory placement, branch creation, and cleanup automatically. Using `git worktree add` when you have a native tool creates phantom state your harness can't see or manage.
 
@@ -110,6 +112,24 @@ cd "$path"
 ```
 
 **Sandbox fallback:** If `git worktree add` fails with a permission error (sandbox denial), tell the user the sandbox blocked worktree creation and you're working in the current directory instead. Then run setup and baseline tests in place.
+
+## Step 2: Initialize jj (colocated)
+
+The workspace exists (native tool, git worktree, or in-place). Colocate jj on top of
+the git checkout so all later commits, branches, and merges use jj while git interop
+(remotes, harness worktree tools) keeps working.
+
+```bash
+# Idempotent: only initializes if this checkout isn't a jj repo yet
+jj st >/dev/null 2>&1 || jj git init --colocate
+```
+
+**Why colocate, not `jj workspace add`:** the isolation is already git-owned (the harness
+or `git worktree` created it). Colocating leaves that ownership intact — jj rides on top
+rather than creating a second, competing workspace the harness can't see.
+
+From here on, this skill family uses jj for version control (see
+`finishing-a-development-branch` for commit/merge/PR flow).
 
 ## Step 3: Project Setup
 

@@ -23,10 +23,10 @@ Dispatch a code reviewer subagent to catch issues before they cascade. The revie
 
 ## How to Request
 
-**1. Get git SHAs:**
+**1. Get the revision range:**
 ```bash
-BASE_SHA=$(git rev-parse HEAD~1)  # or origin/main
-HEAD_SHA=$(git rev-parse HEAD)
+BASE_SHA=$(jj log -r '@-' --no-graph -T commit_id)   # or a base bookmark like main
+HEAD_SHA=$(jj log -r '@'  --no-graph -T commit_id)
 ```
 
 **2. Dispatch code reviewer subagent:**
@@ -52,8 +52,8 @@ Use Task tool with `general-purpose` type, fill template at `code-reviewer.md`
 
 You: Let me request code review before proceeding.
 
-BASE_SHA=$(git log --oneline | grep "Task 1" | head -1 | awk '{print $1}')
-HEAD_SHA=$(git rev-parse HEAD)
+BASE_SHA=$(jj log -r 'description("Task 1")' --no-graph -T 'commit_id ++ "\n"' | head -1)
+HEAD_SHA=$(jj log -r '@' --no-graph -T commit_id)
 
 [Dispatch code reviewer subagent]
   DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types

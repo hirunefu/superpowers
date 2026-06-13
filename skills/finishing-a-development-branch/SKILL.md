@@ -51,41 +51,34 @@ This determines which menu to show and how cleanup works:
 | State | Menu | Cleanup |
 |-------|------|---------|
 | `GIT_DIR == GIT_COMMON` (normal repo) | Standard 4 options | No worktree to clean up |
-| `GIT_DIR != GIT_COMMON`, named branch | Standard 4 options | Provenance-based (see Step 6) |
-| `GIT_DIR != GIT_COMMON`, detached HEAD | Reduced 3 options (no merge) | No cleanup (externally managed) |
+| `GIT_DIR != GIT_COMMON` (linked worktree) | Standard 4 options | Provenance-based (see Step 6) |
 
-### Step 3: Determine Base Branch
+jj has no "detached HEAD" state: the working change (`@`) always exists, and any change can
+be given a bookmark at push time. So there is no reduced menu — always present the 4 options.
+When the workspace is externally managed (harness-owned), Step 6's provenance check still
+prevents you from removing a worktree you didn't create.
+
+### Step 3: Determine Base Bookmark
 
 ```bash
-# Try common base branches
-git merge-base HEAD main 2>/dev/null || git merge-base HEAD master 2>/dev/null
+# Fork point from the base bookmark (usually main, else master)
+jj log -r 'heads(::@ & ::main)' --no-graph -T 'commit_id ++ "\n"' 2>/dev/null \
+  || jj log -r 'heads(::@ & ::master)' --no-graph -T 'commit_id ++ "\n"' 2>/dev/null
 ```
 
-Or ask: "This branch split from main - is that correct?"
+Or ask: "This work split from main - is that correct?"
 
 ### Step 4: Present Options
 
-**Normal repo and named-branch worktree — present exactly these 4 options:**
+**Present exactly these 4 options:**
 
 ```
 Implementation complete. What would you like to do?
 
-1. Merge back to <base-branch> locally
+1. Merge back to <base-bookmark> locally
 2. Push and create a Pull Request
-3. Keep the branch as-is (I'll handle it later)
+3. Keep the work as-is (I'll handle it later)
 4. Discard this work
-
-Which option?
-```
-
-**Detached HEAD — present exactly these 3 options:**
-
-```
-Implementation complete. You're on a detached HEAD (externally managed workspace).
-
-1. Push as new branch and create a Pull Request
-2. Keep as-is (I'll handle it later)
-3. Discard this work
 
 Which option?
 ```
@@ -96,33 +89,43 @@ Which option?
 
 #### Option 1: Merge Locally
 
+**Solo flow only.** This fast-forwards the base bookmark locally. For a shared base (team
+work), use Option 2 (PR) instead — don't advance a shared base by hand.
+
 ```bash
 # Get main repo root for CWD safety
 MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
 cd "$MAIN_ROOT"
 
-# Merge first — verify success before removing anything
-git checkout <base-branch>
-git pull
-git merge <feature-branch>
+# Integrate locally. ONLY for changes you have NOT pushed/shared —
+# rebasing rewrites commit IDs and would diverge from anything already published.
+jj git fetch                            # refresh the base bookmark
+jj rebase -d <base-bookmark>            # replay your work on the latest base
+jj bookmark set <base-bookmark> -r @    # fast-forward base to include it
 
-# Verify tests on merged result
+# Verify tests on the integrated result
 <test command>
-
-# Only after merge succeeds: cleanup worktree (Step 6), then delete branch
 ```
 
-Then: Cleanup worktree (Step 6), then delete branch:
+Pushing the advanced base is a separate, deliberate step (`jj git push --bookmark <base-bookmark>`).
+
+Then: Cleanup worktree (Step 6), then delete the feature bookmark if you created one:
 
 ```bash
-git branch -d <feature-branch>
+jj bookmark delete <feature-bookmark>   # only if one exists
 ```
 
 #### Option 2: Push and Create PR
 
+This is the team integration path: push a bookmark and let the host's merge policy
+(squash/merge/rebase, configured on the repo) apply when the PR merges.
+
 ```bash
-# Push branch
-git push -u origin <feature-branch>
+# Name the work if it has no bookmark yet
+jj bookmark create <feature-bookmark> -r @   # skip if it already has one
+
+# Push the bookmark to the remote
+jj git push --bookmark <feature-bookmark>
 
 # Create PR
 gh pr create --title "<title>" --body "$(cat <<'EOF'
@@ -139,7 +142,7 @@ EOF
 
 #### Option 3: Keep As-Is
 
-Report: "Keeping branch <name>. Worktree preserved at <path>."
+Report: "Keeping work on bookmark <name>. Worktree preserved at <path>."
 
 **Don't cleanup worktree.**
 
@@ -148,7 +151,7 @@ Report: "Keeping branch <name>. Worktree preserved at <path>."
 **Confirm first:**
 ```
 This will permanently delete:
-- Branch <name>
+- Bookmark <name> (if any)
 - All commits: <commit-list>
 - Worktree at <path>
 
@@ -163,9 +166,10 @@ MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-tople
 cd "$MAIN_ROOT"
 ```
 
-Then: Cleanup worktree (Step 6), then force-delete branch:
+Then: Cleanup worktree (Step 6), then abandon the work:
 ```bash
-git branch -D <feature-branch>
+jj abandon <feature-change>             # drop the commits
+jj bookmark delete <feature-bookmark>   # only if one exists
 ```
 
 ### Step 6: Cleanup Workspace
@@ -193,12 +197,12 @@ git worktree prune  # Self-healing: clean up any stale registrations
 
 ## Quick Reference
 
-| Option | Merge | Push | Keep Worktree | Cleanup Branch |
-|--------|-------|------|---------------|----------------|
-| 1. Merge locally | yes | - | - | yes |
+| Option | Integrate | Push | Keep Worktree | Cleanup Bookmark |
+|--------|-----------|------|---------------|------------------|
+| 1. Merge locally | fast-forward base | - | - | delete (if any) |
 | 2. Create PR | - | yes | yes | - |
 | 3. Keep as-is | - | - | yes | - |
-| 4. Discard | - | - | - | yes (force) |
+| 4. Discard | - | - | - | abandon + delete |
 
 ## Common Mistakes
 
@@ -214,9 +218,9 @@ git worktree prune  # Self-healing: clean up any stale registrations
 - **Problem:** Remove worktree user needs for PR iteration
 - **Fix:** Only cleanup for Options 1 and 4
 
-**Deleting branch before removing worktree**
-- **Problem:** `git branch -d` fails because worktree still references the branch
-- **Fix:** Merge first, remove worktree, then delete branch
+**Deleting the bookmark before integrating**
+- **Problem:** Abandoning or deleting the work before it's merged or pushed loses it
+- **Fix:** Integrate (Option 1) or push (Option 2) first, then delete the bookmark
 
 **Running git worktree remove from inside the worktree**
 - **Problem:** Command fails silently when CWD is inside the worktree being removed
@@ -234,10 +238,11 @@ git worktree prune  # Self-healing: clean up any stale registrations
 
 **Never:**
 - Proceed with failing tests
-- Merge without verifying tests on result
+- Integrate without verifying tests on result
 - Delete work without confirmation
-- Force-push without explicit request
-- Remove a worktree before confirming merge success
+- Rebase changes that have already been pushed or shared (rewrites published commits)
+- Push a bookmark non-fast-forward (rewriting remote history) without explicit request
+- Remove a worktree before confirming integration success
 - Clean up worktrees you didn't create (provenance check)
 - Run `git worktree remove` from inside the worktree
 

@@ -98,8 +98,8 @@ Expected: PASS
 - [ ] **Step 5: Commit**
 
 ```bash
-git add tests/path/test.py src/path/file.py
-git commit -m "feat: add specific feature"
+# jj has no staging area — the working copy is committed as-is
+jj commit -m "feat: add specific feature"
 ```
 ````
 
