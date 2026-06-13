@@ -1,10 +1,17 @@
 # Superpowers
 
+**English** | [日本語](README.ja.md)
+
+> This is a personal fork of [obra/superpowers](https://github.com/obra/superpowers),
+> customized for Claude Code only. All credit for the original work goes to
+> [Jesse Vincent](https://blog.fsck.com) and the folks at
+> [Prime Radiant](https://primeradiant.com).
+
 Superpowers is a complete software development methodology for your coding agents, built on top of a set of composable skills and some initial instructions that make sure your agent uses them.
 
 ## Quickstart
 
-Give your agent Superpowers: [Claude Code](#claude-code), [Codex CLI](#codex-cli), [Codex App](#codex-app), [Factory Droid](#factory-droid), [Gemini CLI](#gemini-cli), [OpenCode](#opencode), [Cursor](#cursor), [GitHub Copilot CLI](#github-copilot-cli).
+Give your agent Superpowers: jump to [Installation](#installation) for Claude Code.
 
 ## How it works
 
@@ -18,138 +25,41 @@ Next up, once you say "go", it launches a *subagent-driven-development* process,
 
 There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your coding agent just has Superpowers.
 
-
-## Sponsorship
-
-If Superpowers has helped you do stuff that makes money and you are so inclined, I'd greatly appreciate it if you'd consider [sponsoring my opensource work](https://github.com/sponsors/obra).
-
-Thanks! 
-
-- Jesse
-
-
 ## Installation
 
-Installation differs by harness. If you use more than one, install Superpowers separately for each one.
+This fork ships its own Claude Code marketplace (`superpowers-dev`), so installing
+it pulls **this customized fork** rather than the upstream plugin.
 
-### Claude Code
-
-Superpowers is available via the [official Claude plugin marketplace](https://claude.com/plugins/superpowers)
-
-#### Official Marketplace
-
-- Install the plugin from Anthropic's official marketplace:
+- Register this fork's marketplace:
 
   ```bash
-  /plugin install superpowers@claude-plugins-official
+  /plugin marketplace add hirunefu/superpowers
   ```
 
-#### Superpowers Marketplace
-
-The Superpowers marketplace provides Superpowers and some other related plugins for Claude Code.
-
-- Register the marketplace:
+- Install the plugin from it:
 
   ```bash
-  /plugin marketplace add obra/superpowers-marketplace
+  /plugin install superpowers@superpowers-dev
   ```
 
-- Install the plugin from this marketplace:
+> Looking for the unmodified upstream plugin or another harness (Codex, Gemini,
+> OpenCode, Cursor, Copilot)? See the
+> [upstream README](https://github.com/obra/superpowers#installation).
 
-  ```bash
-  /plugin install superpowers@superpowers-marketplace
-  ```
+## Syncing with upstream
 
-### Codex CLI
+Pull the latest changes from `obra/superpowers` into this fork:
 
-Superpowers is available via the [official Codex plugin marketplace](https://github.com/openai/plugins).
+```bash
+git fetch upstream
+git merge upstream/main   # or: git rebase upstream/main
+```
 
-- Open the plugin search interface:
+If the `upstream` remote is not set yet:
 
-  ```bash
-  /plugins
-  ```
-
-- Search for Superpowers:
-
-  ```bash
-  superpowers
-  ```
-
-- Select `Install Plugin`.
-
-### Codex App
-
-Superpowers is available via the [official Codex plugin marketplace](https://github.com/openai/plugins).
-
-- In the Codex app, click on Plugins in the sidebar.
-- You should see `Superpowers` in the Coding section.
-- Click the `+` next to Superpowers and follow the prompts.
-
-### Factory Droid
-
-- Register the marketplace:
-
-  ```bash
-  droid plugin marketplace add https://github.com/obra/superpowers
-  ```
-
-- Install the plugin:
-
-  ```bash
-  droid plugin install superpowers@superpowers
-  ```
-
-### Gemini CLI
-
-- Install the extension:
-
-  ```bash
-  gemini extensions install https://github.com/obra/superpowers
-  ```
-
-- Update later:
-
-  ```bash
-  gemini extensions update superpowers
-  ```
-
-### OpenCode
-
-OpenCode uses its own plugin install; install Superpowers separately even if you
-already use it in another harness.
-
-- Tell OpenCode:
-
-  ```
-  Fetch and follow instructions from https://raw.githubusercontent.com/obra/superpowers/refs/heads/main/.opencode/INSTALL.md
-  ```
-
-- Detailed docs: [docs/README.opencode.md](docs/README.opencode.md)
-
-### Cursor
-
-- In Cursor Agent chat, install from marketplace:
-
-  ```text
-  /add-plugin superpowers
-  ```
-
-- Or search for "superpowers" in the plugin marketplace.
-
-### GitHub Copilot CLI
-
-- Register the marketplace:
-
-  ```bash
-  copilot plugin marketplace add obra/superpowers-marketplace
-  ```
-
-- Install the plugin:
-
-  ```bash
-  copilot plugin install superpowers@superpowers-marketplace
-  ```
+```bash
+git remote add upstream https://github.com/obra/superpowers.git
+```
 
 ## The Basic Workflow
 
@@ -206,19 +116,8 @@ Read [the original release announcement](https://blog.fsck.com/2025/10/09/superp
 
 ## Contributing
 
-The general contribution process for Superpowers is below. Keep in mind that we don't generally accept contributions of new skills and that any updates to skills must work across all of the coding agents we support.
-
-1. Fork the repository
-2. Switch to the 'dev' branch
-3. Create a branch for your work
-4. Follow the `writing-skills` skill for creating and testing new and modified skills
-5. Submit a PR, being sure to fill in the pull request template.
-
-See `skills/writing-skills/SKILL.md` for the complete guide.
-
-## Updating
-
-Superpowers updates are somewhat coding-agent dependent, but are often automatic.
+This is a personal fork. Contributions to the project belong upstream — see the
+[contributing guide at obra/superpowers](https://github.com/obra/superpowers#contributing).
 
 ## License
 
@@ -231,3 +130,7 @@ Superpowers is built by [Jesse Vincent](https://blog.fsck.com) and the rest of t
 - **Discord**: [Join us](https://discord.gg/35wsABTejz) for community support, questions, and sharing what you're building with Superpowers
 - **Issues**: https://github.com/obra/superpowers/issues
 - **Release announcements**: [Sign up](https://primeradiant.com/superpowers/) to get notified about new versions
+
+## Sponsorship
+
+If Superpowers has helped you do stuff that makes money and you are so inclined, please consider [sponsoring Jesse's opensource work](https://github.com/sponsors/obra).
