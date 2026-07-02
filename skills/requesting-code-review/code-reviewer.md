@@ -5,7 +5,7 @@ Use this template when dispatching a code reviewer subagent.
 **Purpose:** Review completed work against requirements and code quality standards before it cascades into more work.
 
 ```
-Task tool (general-purpose):
+Subagent (general-purpose):
   description: "Review code changes"
   prompt: |
     You are a Senior Code Reviewer with expertise in software architecture,
@@ -14,21 +14,25 @@ Task tool (general-purpose):
 
     ## What Was Implemented
 
-    {DESCRIPTION}
+    [DESCRIPTION]
 
     ## Requirements / Plan
 
-    {PLAN_OR_REQUIREMENTS}
+    [PLAN_OR_REQUIREMENTS]
 
     ## Range to Review
 
-    **Base:** {BASE_SHA}
-    **Head:** {HEAD_SHA}
+    **Base:** [BASE_SHA]
+    **Head:** [HEAD_SHA]
 
     ```bash
-    jj diff --stat --from {BASE_SHA} --to {HEAD_SHA}
-    jj diff --from {BASE_SHA} --to {HEAD_SHA}
+    jj diff --stat --from [BASE_SHA] --to [HEAD_SHA]
+    jj diff --from [BASE_SHA] --to [HEAD_SHA]
     ```
+
+    ## Read-Only Review
+
+    Your review is read-only on this checkout. Do not mutate the working copy, bookmarks, or repo state in any way. Use tools like `jj show`, `jj diff`, and `jj log` to inspect history. If you need a working copy of a different revision, check it out into a separate temporary workspace (e.g. `jj workspace add --revision [SHA] /tmp/review-[SHA]`) — never move the working copy of this checkout.
 
     ## What to Check
 
@@ -122,10 +126,10 @@ Task tool (general-purpose):
 ```
 
 **Placeholders:**
-- `{DESCRIPTION}` — brief summary of what was built
-- `{PLAN_OR_REQUIREMENTS}` — what it should do (plan file path, task text, or requirements)
-- `{BASE_SHA}` — starting commit
-- `{HEAD_SHA}` — ending commit
+- `[DESCRIPTION]` — brief summary of what was built
+- `[PLAN_OR_REQUIREMENTS]` — what it should do (plan file path, task text, or requirements)
+- `[BASE_SHA]` — starting commit
+- `[HEAD_SHA]` — ending commit
 
 **Reviewer returns:** Strengths, Issues (Critical / Important / Minor), Recommendations, Assessment
 

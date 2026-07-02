@@ -42,8 +42,8 @@ it pulls **this customized fork** rather than the upstream plugin.
   /plugin install superpowers@superpowers-dev
   ```
 
-> Looking for the unmodified upstream plugin or another harness (Codex, Gemini,
-> OpenCode, Cursor, Copilot)? See the
+> Looking for the unmodified upstream plugin or another harness (Antigravity,
+> Codex, Cursor, Factory Droid, GitHub Copilot, Kimi Code, OpenCode, Pi)? See the
 > [upstream README](https://github.com/obra/superpowers#installation).
 
 ## Syncing with upstream
@@ -123,6 +123,10 @@ This is a personal fork. Contributions to the project belong upstream — see th
 
 MIT License - see LICENSE file for details
 
+## Visual companion telemetry
+
+Because skills and plugins don't provide any feedback to creators, we have no idea how many of you are using Superpowers. By default, the Prime Radiant logo on brainstorming's optional visual companion feature is loaded from our website. It includes the version of Superpowers in use. It does not include any details about your project, prompt, or coding agent. We don't see your clicks or anything about what you're building. This helps us have a rough idea of how many folks are using Superpowers and which version of Superpowers they're using. It's 100% optional. To disable this, set the environment variable `SUPERPOWERS_DISABLE_TELEMETRY` to any true value. Superpowers also honors Claude Code's `DISABLE_TELEMETRY` and `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` opt-outs.
+
 ## Community
 
 Superpowers is built by [Jesse Vincent](https://blog.fsck.com) and the rest of the folks at [Prime Radiant](https://primeradiant.com).
@@ -130,7 +134,3 @@ Superpowers is built by [Jesse Vincent](https://blog.fsck.com) and the rest of t
 - **Discord**: [Join us](https://discord.gg/35wsABTejz) for community support, questions, and sharing what you're building with Superpowers
 - **Issues**: https://github.com/obra/superpowers/issues
 - **Release announcements**: [Sign up](https://primeradiant.com/superpowers/) to get notified about new versions
-
-## Sponsorship
-
-If Superpowers has helped you do stuff that makes money and you are so inclined, please consider [sponsoring Jesse's opensource work](https://github.com/sponsors/obra).
