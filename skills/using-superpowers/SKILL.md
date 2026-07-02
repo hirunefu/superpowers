@@ -19,7 +19,7 @@ This is not negotiable. You cannot rationalize your way out of this.
 
 **Invoke relevant or requested skills BEFORE any response or action** — including clarifying questions, exploring the codebase, or checking files. If it turns out wrong for the situation, you don't have to use it.
 
-**Evaluate vs. invoke:** You must *evaluate* every available skill's description against the task before acting — that evaluation is mandatory and always happens first. An actual `Skill` tool *invocation* is required whenever that evaluation yields even a 1% chance of applicability. Only when you've evaluated and no skill reaches that bar may you proceed directly. "I evaluated and none applied" is a valid outcome; "I didn't bother checking" is not.
+**Evaluate vs. invoke:** You must *evaluate* every available skill's description against the task before acting — that evaluation is mandatory and always happens first (reading skill descriptions for it is part of the evaluation, not a pre-invocation action). An actual `Skill` tool *invocation* is required whenever that evaluation yields even a 1% chance of applicability **for the immediate next phase of work**: invoke the skill whose description names the moment you are in now; skills that apply later fire at their own trigger points, not all at once up front. Only when you've evaluated and no skill reaches that bar may you proceed directly. "I evaluated and none applied" is a valid outcome; "I didn't bother checking" is not.
 
 **Before entering plan mode:** if you haven't already brainstormed, invoke the brainstorming skill first.
 

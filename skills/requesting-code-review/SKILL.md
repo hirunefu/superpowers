@@ -23,10 +23,18 @@ Dispatch a code reviewer subagent to catch issues before they cascade. The revie
 
 ## How to Request
 
-**1. Get the revision range:**
+**1. Get the revision range** — select by intent, not by fixed revsets:
+
+- `HEAD` = the commit containing the finished work. That is `@` if you work in it,
+  but `@-` when `@` is an empty working-copy change on top of the finished commit
+  (the common jj state). Check: `jj log -r @ --no-graph -T 'empty'` prints `true` → use `@-`.
+- `BASE` = the commit you branched from (a base bookmark like `main`, or the fork
+  point `heads(::@ & ::main)`) — NOT simply the parent of HEAD, which drops all but
+  the last commit of multi-commit work.
+
 ```bash
-BASE_SHA=$(jj log -r '@-' --no-graph -T commit_id)   # or a base bookmark like main
-HEAD_SHA=$(jj log -r '@'  --no-graph -T commit_id)
+BASE_SHA=$(jj log -r 'main' --no-graph -T commit_id)   # or the fork point revset above
+HEAD_SHA=$(jj log -r '@-'  --no-graph -T commit_id)    # use @ if your work lives in @
 ```
 
 **2. Dispatch code reviewer subagent:**
@@ -34,10 +42,12 @@ HEAD_SHA=$(jj log -r '@'  --no-graph -T commit_id)
 Dispatch a `general-purpose` subagent, filling the template at [code-reviewer.md](code-reviewer.md)
 
 **Placeholders:**
-- `{DESCRIPTION}` - Brief summary of what you built
-- `{PLAN_OR_REQUIREMENTS}` - What it should do
-- `{BASE_SHA}` - Starting commit
-- `{HEAD_SHA}` - Ending commit
+- `[DESCRIPTION]` - Brief summary of what you built
+- `[PLAN_OR_REQUIREMENTS]` - What it should do
+- `[BASE_SHA]` - Starting commit
+- `[HEAD_SHA]` - Ending commit
+
+Only these four are dispatcher-filled. Other bracketed text inside the template (e.g. the Output Format section) is guidance for the reviewer — leave it verbatim.
 
 **3. Act on feedback:**
 - Fix Critical issues immediately
@@ -52,8 +62,11 @@ Dispatch a `general-purpose` subagent, filling the template at [code-reviewer.md
 
 You: Let me request code review before proceeding.
 
+$ jj log -r @ --no-graph -T 'empty'
+true    # @ is an empty working-copy change → the finished work is @-
+
 BASE_SHA=$(jj log -r 'description("Task 1")' --no-graph -T 'commit_id ++ "\n"' | head -1)
-HEAD_SHA=$(jj log -r '@' --no-graph -T commit_id)
+HEAD_SHA=$(jj log -r '@-' --no-graph -T commit_id)
 
 [Dispatch code reviewer subagent]
   DESCRIPTION: Added verifyIndex() and repairIndex() with 4 issue types

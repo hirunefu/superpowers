@@ -32,7 +32,7 @@ Subagent (general-purpose):
 
     ## Read-Only Review
 
-    Your review is read-only on this checkout. Do not mutate the working copy, bookmarks, or repo state in any way. Use tools like `jj show`, `jj diff`, and `jj log` to inspect history. If you need a working copy of a different revision, check it out into a separate temporary workspace (e.g. `jj workspace add --revision [SHA] /tmp/review-[SHA]`) — never move the working copy of this checkout.
+    Your review is read-only on this checkout. Do not mutate the working copy, bookmarks, or repo state in any way. Use tools like `jj show`, `jj diff`, and `jj log` to inspect history. If you need a working copy of a different revision, check it out into a separate temporary workspace in a scratch location suited to your environment (e.g. `jj workspace add --revision <revision> /tmp/review-<revision>`, substituting the revision and path yourself) — never move the working copy of this checkout.
 
     ## What to Check
 

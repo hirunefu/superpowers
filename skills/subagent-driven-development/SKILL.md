@@ -204,7 +204,7 @@ final whole-branch review. When you fill a reviewer template:
   `scripts/review-package MERGE_BASE HEAD` (MERGE_BASE = the commit the
   branch started from, e.g. `git merge-base main HEAD`) and include the
   printed path in the final review dispatch, so the final reviewer reads
-  one file instead of re-deriving the branch diff with git commands.
+  one file instead of re-deriving the branch diff itself.
 - Every fix dispatch carries the implementer contract: the fix subagent
   re-runs the tests covering its change and reports the results. Name the
   covering test files in the dispatch — a one-line fix does not need the
@@ -229,10 +229,20 @@ and is re-read on every later turn. Hand artifacts over as files:
   contain: (1) one line on where this task fits in the project; (2) the
   brief path, introduced as "read this first — it is your requirements,
   with the exact values to use verbatim"; (3) interfaces and decisions
-  from earlier tasks that the brief cannot know; (4) your resolution of
-  any ambiguity you noticed in the brief; (5) the report-file path and
-  report contract. Exact values (numbers, magic strings, signatures, test
-  cases) appear only in the brief.
+  from earlier tasks that the brief cannot know; (4) the plan's Global
+  Constraints, copied verbatim — the brief extract is task-scoped and
+  does NOT include them, and the implementer template has no other slot
+  for them; (5) your resolution of any ambiguity you noticed in the
+  brief; (6) the report-file path and report contract. Exact values
+  (numbers, magic strings, signatures, test cases) appear only in the
+  brief. Before dispatching, verify the working
+  copy is clean — commit or sequester unrelated changes first, because a
+  sweeping commit (jj sweeps the whole working copy) would pollute the
+  task's reviewed diff — then record the current commit as this task's
+  BASE (`git rev-parse HEAD`); the post-DONE review package is generated
+  from it. (jj-colocated mapping: "clean" means `jj st` reports no
+  changes; after `jj commit`, git HEAD points at the commit you just
+  made, so `git rev-parse HEAD` records the right BASE.)
 - **Report file:** name the implementer's report file after the brief
   (brief `…/task-N-brief.md` → report `…/task-N-report.md`) and put it in
   the dispatch prompt. The implementer writes the full report there and
@@ -394,7 +404,7 @@ Done!
 - Don't rush them into implementation
 
 **If reviewer finds issues:**
-- Implementer (same subagent) fixes them
+- Dispatch a fix subagent (carrying the implementer contract) to fix them
 - Reviewer reviews again
 - Repeat until approved
 - Don't skip the re-review
@@ -409,7 +419,7 @@ Done!
 - **superpowers:using-git-worktrees** - Ensures isolated workspace (creates one or verifies existing)
 - **superpowers:writing-plans** - Creates the plan this skill executes
 - **superpowers:requesting-code-review** - Code review template for the final whole-branch review
-- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+- **superpowers:finishing-a-development-branch** - Complete development after all tasks. If the plan is silent on integration, default to Option 3 (keep as-is) at that skill's menu and report — integration remains the human's decision.
 
 **Subagents should use:**
 - **superpowers:test-driven-development** - Subagents follow TDD for each task

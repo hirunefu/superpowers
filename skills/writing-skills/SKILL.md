@@ -566,7 +566,7 @@ This is "watch the test fail" - you must see what agents naturally do before wri
 1. Write one realistic scenario that tempts the target violation (for discipline skills, stack 3+ pressures: time + sunk cost + authority).
 2. Dispatch a fresh subagent with the scenario and NO skill. Tell it "this is a real task, decide and act."
 3. Record its choice and verbatim rationalizations.
-(For pressure-type taxonomy, multi-round plugging, and meta-testing, see @testing-skills-with-subagents.md — only needed for thorough hardening, not a first baseline.)
+(For pressure-type taxonomy, multi-round plugging, and meta-testing, see [testing-skills-with-subagents.md](testing-skills-with-subagents.md) — only needed for thorough hardening, not a first baseline.)
 
 **If the baseline does NOT fail** (the agent already complies without the skill, across multiple scenarios): STOP — do not write the skill. There is no failing test, so the Iron Law's precondition is unmet. Either the behavior is already the default, or the rule is a mechanical constraint that belongs in automation (see "Don't create for: Mechanical constraints"). Record the passing baseline as the artifact and report the finding instead of shipping a skill nothing needed.
 
@@ -670,7 +670,7 @@ Deploying untested skills = deploying untested code. It's a violation of quality
 - [ ] Supporting files only for tools or heavy reference
 
 **Deployment:**
-- [ ] Commit skill to git and push to your fork (if configured)
+- [ ] Commit skill with jj and push the bookmark to your fork (if configured)
 - [ ] Consider contributing back via PR (if broadly useful)
 
 ## Discovery Workflow

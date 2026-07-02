@@ -23,11 +23,12 @@ BRANCH=$(git branch --show-current)
 - `GIT_DIR != GIT_COMMON` → already in a linked worktree (skip creation)
 - `BRANCH` empty → externally-managed checkout (cannot push/PR from sandbox)
 
-The worktree stays git-owned; once detected, `using-git-worktrees` Step 2 colocates jj so
-commits, branches, and merges run through jj.
+A detected git worktree stays git-owned — jj cannot colocate inside one, so operate it
+with git (`using-git-worktrees` Step 2 explains the ownership check); jj manages the
+main checkout and jj-created workspaces.
 
 See `using-git-worktrees` Step 0 and `finishing-a-development-branch`
-Step 1 for how each skill uses these signals.
+Step 2 (Detect Environment) for how each skill uses these signals.
 
 ## Codex App Finishing
 

@@ -42,28 +42,37 @@ Stop. Don't proceed to Step 2.
 **Determine workspace state before presenting options:**
 
 ```bash
+# Capture while still inside the workspace — Step 6 consumes these values.
+# (Options 1 and 4 cd to the main repo root before cleanup; deriving them
+# after that cd would always report "normal repo" and silently skip cleanup.)
 GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
 GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
+WORKTREE_PATH=$(git rev-parse --show-toplevel)
+JJ_ROOT=$(jj root 2>/dev/null)   # differs from WORKTREE_PATH inside a jj workspace
 ```
 
 This determines which menu to show and how cleanup works:
 
 | State | Menu | Cleanup |
 |-------|------|---------|
-| `GIT_DIR == GIT_COMMON` (normal repo) | Standard 4 options | No worktree to clean up |
-| `GIT_DIR != GIT_COMMON` (linked worktree) | Standard 4 options | Provenance-based (see Step 6) |
+| `GIT_DIR == GIT_COMMON` and `JJ_ROOT == WORKTREE_PATH` (normal repo) | Standard 4 options | No workspace to clean up |
+| `GIT_DIR != GIT_COMMON` (linked git worktree) | Standard 4 options | Provenance-based (see Step 6) |
+| `JJ_ROOT != WORKTREE_PATH` (secondary jj workspace) | Standard 4 options | `jj workspace forget` (see Step 6) |
 
 jj has no "detached HEAD" state: the working change (`@`) always exists, and any change can
 be given a bookmark at push time. So there is no reduced menu — always present the 4 options.
+Working-copy invariant: in the common jj state, `@` is an empty change on top of the
+finished commit — the finished work is `@-`. Every option below inherits this reading.
 When the workspace is externally managed (harness-owned), Step 6's provenance check still
 prevents you from removing a worktree you didn't create.
 
 ### Step 3: Determine Base Bookmark
 
 ```bash
-# Fork point from the base bookmark (usually main, else master)
-jj log -r 'heads(::@ & ::main)' --no-graph -T 'commit_id ++ "\n"' 2>/dev/null \
-  || jj log -r 'heads(::@ & ::master)' --no-graph -T 'commit_id ++ "\n"' 2>/dev/null
+# The base bookmark NAME feeds Steps 4-5 — bind it explicitly, don't leave it implicit.
+BASE_BOOKMARK=main   # or master, whichever exists (`jj bookmark list`)
+# Fork point (the commit your work branched from):
+jj log -r "heads(::@ & ::$BASE_BOOKMARK)" --no-graph -T 'commit_id ++ "\n"'
 ```
 
 Or ask: "This work split from main - is that correct?"
@@ -99,9 +108,15 @@ cd "$MAIN_ROOT"
 
 # Integrate locally. ONLY for changes you have NOT pushed/shared —
 # rebasing rewrites commit IDs and would diverge from anything already published.
-jj git fetch                            # refresh the base bookmark
-jj rebase -d <base-bookmark>            # replay your work on the latest base
-jj bookmark set <base-bookmark> -r @    # fast-forward base to include it
+jj git fetch    # skip if the repo has no remote — the local bookmark is authoritative
+jj rebase -b @ -d <base-bookmark>       # replay your work on the latest base (-b @ names the target set explicitly)
+
+# Fast-forward the base to the FINISHED commit — not blindly to @.
+# In the common jj state, @ is an empty working-copy change on top of the
+# finished work; pointing the base at it would publish an empty, undescribed
+# commit. Verify what @ is first:
+jj log -r @ --no-graph -T 'if(empty, "@ is empty — use @-", "@ has content — use @")'
+jj bookmark set <base-bookmark> -r <finished-commit>   # @ or @- per the check above
 
 # Verify tests on the integrated result
 <test command>
@@ -109,7 +124,7 @@ jj bookmark set <base-bookmark> -r @    # fast-forward base to include it
 
 Pushing the advanced base is a separate, deliberate step (`jj git push --bookmark <base-bookmark>`).
 
-Then: Cleanup worktree (Step 6), then delete the feature bookmark if you created one:
+Then: Cleanup worktree (Step 6), then delete the feature bookmark if one exists:
 
 ```bash
 jj bookmark delete <feature-bookmark>   # only if one exists
@@ -142,8 +157,8 @@ Report: "Keeping work on bookmark <name>. Worktree preserved at <path>."
 ```
 This will permanently delete:
 - Bookmark <name> (if any)
-- All commits: <commit-list>
-- Worktree at <path>
+- All commits: <commit-list> (the empty @ change is auto-rebased, not deleted)
+- Worktree at <path> (include this line only if Step 2 detected a linked worktree/workspace)
 
 Type 'discard' to confirm.
 ```
@@ -161,22 +176,33 @@ Then: Cleanup worktree (Step 6), then abandon the work:
 # <feature-change-id> is a jj change/revset; <feature-bookmark> is a bookmark name.
 # They are different argument types — don't pass a bookmark where a change-id is expected.
 jj abandon <feature-change-id>          # drop the commits
-jj bookmark delete <feature-bookmark>   # only if one exists
+# Current jj may already delete the bookmark as a side effect of the abandon —
+# a "No matching bookmarks" warning on the next command is benign.
+jj bookmark delete <feature-bookmark>   # only if one still exists
 ```
 
 ### Step 6: Cleanup Workspace
 
 **Only runs for Options 1 and 4.** Options 2 and 3 always preserve the worktree.
 
+Use the `GIT_DIR` / `GIT_COMMON` / `WORKTREE_PATH` values captured in Step 2 — do NOT
+re-derive them here. By this point Options 1 and 4 have already run `cd "$MAIN_ROOT"`,
+so re-deriving from the current directory would always yield `GIT_DIR == GIT_COMMON`
+and silently skip the cleanup this step exists for.
+
+**If `GIT_DIR == GIT_COMMON` and `JJ_ROOT == WORKTREE_PATH`:** Normal repo, no workspace to clean up. Done.
+
+**If `JJ_ROOT != WORKTREE_PATH` (secondary jj workspace):** the workspace is jj-owned. If `JJ_ROOT` is under `.worktrees/` or `worktrees/` (Superpowers provenance), clean it up from the main checkout:
+
 ```bash
-GIT_DIR=$(cd "$(git rev-parse --git-dir)" 2>/dev/null && pwd -P)
-GIT_COMMON=$(cd "$(git rev-parse --git-common-dir)" 2>/dev/null && pwd -P)
-WORKTREE_PATH=$(git rev-parse --show-toplevel)
+cd "$WORKTREE_PATH"                      # the main checkout (git toplevel)
+jj workspace forget <workspace-name>     # name from `jj workspace list`
+rm -rf "$JJ_ROOT"
 ```
 
-**If `GIT_DIR == GIT_COMMON`:** Normal repo, no worktree to clean up. Done.
+Otherwise the workspace is externally managed — leave it in place.
 
-**If worktree path is under `.worktrees/` or `worktrees/`:** Superpowers created this worktree — we own cleanup.
+**If `GIT_DIR != GIT_COMMON` and worktree path is under `.worktrees/` or `worktrees/`:** Superpowers created this git worktree — we own cleanup.
 
 ```bash
 MAIN_ROOT=$(git -C "$(git rev-parse --git-common-dir)/.." rev-parse --show-toplevel)
