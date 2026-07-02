@@ -25,6 +25,12 @@ Next up, once you say "go", it launches a *subagent-driven-development* process,
 
 There's a bunch more to it, but that's the core of the system. And because the skills trigger automatically, you don't need to do anything special. Your coding agent just has Superpowers.
 
+## Fork customizations
+
+- **jj (Jujutsu) as the operational VCS.** Skill instructions for commits, bookmarks, merges, and isolation use jj colocated with git. Isolated workspaces are created with `jj workspace add`; git worktrees remain only for harness-owned isolation and as a no-jj fallback.
+- **Empirically tuned skills.** Skill changes are validated with an evaluation loop: blank-slate executor subagents run realistic scenarios against the skill text, and only fixes that survive re-evaluation ship.
+- **Claude Code-only packaging.** Other harness integrations stay in the tree via upstream merges but are not tested here — use upstream for those.
+
 ## Installation
 
 This fork ships its own Claude Code marketplace (`superpowers-dev`), so installing
@@ -48,34 +54,37 @@ it pulls **this customized fork** rather than the upstream plugin.
 
 ## Syncing with upstream
 
-Pull the latest changes from `obra/superpowers` into this fork:
+Pull the latest changes from `obra/superpowers` into this fork (merge, not rebase —
+the fork's commits are published):
 
 ```bash
-git fetch upstream
-git merge upstream/main   # or: git rebase upstream/main
+jj git fetch --remote upstream
+jj new main main@upstream    # merge commit; resolve conflicts, verify, then:
+jj bookmark set main -r @
+jj git push --bookmark main
 ```
 
 If the `upstream` remote is not set yet:
 
 ```bash
-git remote add upstream https://github.com/obra/superpowers.git
+jj git remote add upstream https://github.com/obra/superpowers.git
 ```
 
 ## The Basic Workflow
 
 1. **brainstorming** - Activates before writing code. Refines rough ideas through questions, explores alternatives, presents design in sections for validation. Saves design document.
 
-2. **using-git-worktrees** - Activates after design approval. Creates isolated workspace on new branch, runs project setup, verifies clean test baseline.
+2. **using-git-worktrees** - Activates after design approval. Creates an isolated jj workspace (the work gets its bookmark at finish time, not upfront), runs project setup, verifies clean test baseline.
 
 3. **writing-plans** - Activates with approved design. Breaks work into bite-sized tasks (2-5 minutes each). Every task has exact file paths, complete code, verification steps.
 
-4. **subagent-driven-development** or **executing-plans** - Activates with plan. Dispatches fresh subagent per task with two-stage review (spec compliance, then code quality), or executes in batches with human checkpoints.
+4. **subagent-driven-development** or **executing-plans** - Activates with plan. Dispatches a fresh subagent per task with a task-scoped review plus a final whole-branch review, or executes all tasks in this session start-to-finish.
 
 5. **test-driven-development** - Activates during implementation. Enforces RED-GREEN-REFACTOR: write failing test, watch it fail, write minimal code, watch it pass, commit. Deletes code written before tests.
 
 6. **requesting-code-review** - Activates between tasks. Reviews against plan, reports issues by severity. Critical issues block progress.
 
-7. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, presents options (merge/PR/keep/discard), cleans up worktree.
+7. **finishing-a-development-branch** - Activates when tasks complete. Verifies tests, presents options (merge/PR/keep/discard), cleans up the workspace.
 
 **The agent checks for relevant skills before any task.** Mandatory workflows, not suggestions.
 
@@ -93,13 +102,13 @@ git remote add upstream https://github.com/obra/superpowers.git
 **Collaboration** 
 - **brainstorming** - Socratic design refinement
 - **writing-plans** - Detailed implementation plans
-- **executing-plans** - Batch execution with checkpoints
+- **executing-plans** - Start-to-finish plan execution in a separate session
 - **dispatching-parallel-agents** - Concurrent subagent workflows
 - **requesting-code-review** - Pre-review checklist
 - **receiving-code-review** - Responding to feedback
-- **using-git-worktrees** - Parallel development branches
+- **using-git-worktrees** - Isolated development workspaces (jj-first)
 - **finishing-a-development-branch** - Merge/PR decision workflow
-- **subagent-driven-development** - Fast iteration with two-stage review (spec compliance, then code quality)
+- **subagent-driven-development** - Fast iteration with task-scoped reviews and a final whole-branch review
 
 **Meta**
 - **writing-skills** - Create new skills following best practices (includes testing methodology)
